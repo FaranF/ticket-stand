@@ -9,10 +9,10 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Genre(models.Model):
     title = models.CharField(max_length=255)
-    featured_movies = models.ForeignKey(
-        'Movie', on_delete=models.SET_NULL, null=True, related_name='+', blank=True)
-    featured_tvshows = models.ForeignKey(
-        'TVShow', on_delete=models.SET_NULL, null=True, related_name='+', blank=True)
+    featured_movies = models.ManyToManyField(
+        'Movie', related_name="featured_movies_genre", blank=True)
+    featured_tvshows = models.ManyToManyField(
+        'TVShow', related_name="featured_tvshows_genre", blank=True)
     
     class Meta:
         ordering = ['title']
@@ -37,9 +37,7 @@ class Movie(models.Model):
     description = models.TextField()
     r_rated = models.BooleanField()
     status = models.CharField(max_length=1, choices=STATUS_CHOICES)
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-    featured_comments = models.ForeignKey(
-        'Comment', on_delete=models.SET_NULL, null=True, related_name='+', blank=True)
+    genre = models.ManyToManyField(Genre, related_name="movies_genre")
 
 
 class TVShow(models.Model):
@@ -65,12 +63,7 @@ class TVShow(models.Model):
     description = models.TextField()
     r_rated = models.BooleanField()
     status = models.CharField(max_length=1, choices=STATUS_CHOICES)
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-    featured_seasons = models.ForeignKey(
-        'Season', on_delete=models.SET_NULL, null=True, related_name='+', blank=True)
-    featured_comments = models.ForeignKey(
-        'Comment', on_delete=models.SET_NULL, null=True, related_name='+', blank=True)
-    
+    genre = models.ManyToManyField(Genre, related_name="tvshows_genre")
     
 class Season(models.Model):
     title = models.CharField(max_length=255)
@@ -83,8 +76,7 @@ class Season(models.Model):
     picture = models.ImageField(null=True)
     description = models.TextField(null=True)
     tvshow = models.ForeignKey(TVShow, on_delete=models.CASCADE)
-    featured_episodes = models.ForeignKey(
-        'Episode', on_delete=models.SET_NULL, null=True, related_name='+', blank=True)
+
     
 class Episode(models.Model):
     title = models.CharField(max_length=255)
@@ -104,9 +96,7 @@ class Cast(models.Model):
     last_name = models.CharField(max_length=255)
     age = models.PositiveIntegerField(null=True)
     picture = models.ImageField(null=True)
-    featured_roles = models.ForeignKey(
-        'Role', on_delete=models.SET_NULL, null=True, related_name='+', blank=True)
-    
+
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
     

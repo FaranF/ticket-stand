@@ -97,21 +97,61 @@ class ReleaseDateFilter(admin.SimpleListFilter):
         if self.value() == "<1990":
             return queryset.filter(release_date__lt=date(1990, 1, 1))
         elif self.value() == "1990-1994":
-            return queryset.filter(release_date__range=(date(1990, 1, 1), date(1994, 12, 31)))
+            return queryset.filter(
+                release_date__range=(date(1990, 1, 1), date(1994, 12, 31))
+            )
         elif self.value() == "1995-1999":
-            return queryset.filter(release_date__range=(date(1995, 1, 1), date(1999, 12, 31)))
+            return queryset.filter(
+                release_date__range=(date(1995, 1, 1), date(1999, 12, 31))
+            )
         elif self.value() == "2000-2004":
-            return queryset.filter(release_date__range=(date(2000, 1, 1), date(2004, 12, 31)))
+            return queryset.filter(
+                release_date__range=(date(2000, 1, 1), date(2004, 12, 31))
+            )
         elif self.value() == "2005-2009":
-            return queryset.filter(release_date__range=(date(2005, 1, 1), date(2009, 12, 31)))
+            return queryset.filter(
+                release_date__range=(date(2005, 1, 1), date(2009, 12, 31))
+            )
         elif self.value() == "2010-2014":
-            return queryset.filter(release_date__range=(date(2010, 1, 1), date(2014, 12, 31)))
+            return queryset.filter(
+                release_date__range=(date(2010, 1, 1), date(2014, 12, 31))
+            )
         elif self.value() == "2015-2019":
-            return queryset.filter(release_date__range=(date(2015, 1, 1), date(2019, 12, 31)))
+            return queryset.filter(
+                release_date__range=(date(2015, 1, 1), date(2019, 12, 31))
+            )
         elif self.value() == "2020-2023":
-            return queryset.filter(release_date__range=(date(2020, 1, 1), date(2023, 12, 31)))
+            return queryset.filter(
+                release_date__range=(date(2020, 1, 1), date(2023, 12, 31))
+            )
         elif self.value() == ">2024":
             return queryset.filter(release_date__gt=date(2023, 12, 31))
+
+
+class AgeFilter(admin.SimpleListFilter):
+    title = "age"
+    parameter_name = "age"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("0-12", "0-12 (Child Actors)"),
+            ("13-17", "13-17 (Teen Actors)"),
+            ("18-24", "18-24 (Young Adult Actors)"),
+            ("25-54", "25-54 (Adult Actors)"),
+            ("55+", "55+ (Senior Actors)"),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == "0-12":
+            return queryset.filter(age__lte=12)
+        elif self.value() == "13-17":
+            return queryset.filter(age__range=(13, 17))
+        elif self.value() == "18-24":
+            return queryset.filter(age__range=(18, 24))
+        elif self.value() == "25-54":
+            return queryset.filter(age__range=(25, 54))
+        elif self.value() == "55+":
+            return queryset.filter(age__gte=55)
 
 
 @admin.register(models.Genre)
@@ -120,7 +160,7 @@ class GenreAdmin(admin.ModelAdmin):
     list_display = ["title", "movies_count", "tvshows_count"]
     search_fields = ["title"]
 
-    @admin.display(ordering=["movies_count", "tvshows_count"])
+    @admin.display(ordering=["movies_count"])
     def movies_count(self, genre):
         url = (
             reverse("admin:cinema_movie_changelist")
@@ -129,7 +169,7 @@ class GenreAdmin(admin.ModelAdmin):
         )
         return format_html('<a href="{}">{} Movies</a>', url, genre.movies_count)
 
-    @admin.display(ordering=["movies_count", "tvshows_count"])
+    @admin.display(ordering=["tvshows_count"])
     def tvshows_count(self, genre):
         url = (
             reverse("admin:cinema_tvshow_changelist")
@@ -142,7 +182,10 @@ class GenreAdmin(admin.ModelAdmin):
         return (
             super()
             .get_queryset(request)
-            .annotate(movies_count=Count("movie"), tvshows_count=Count("tvshow"))
+            .annotate(
+                movies_count=Count("movies_genre", distinct=True),
+                tvshows_count=Count("tvshows_genre", distinct=True),
+            )
         )
 
 
@@ -157,11 +200,10 @@ class MovieAdmin(admin.ModelAdmin):
         "total_time",
         "r_rated",
         "status",
-        "genre_title",
+        "display_genres",
     ]
-    list_editable = ['status']
+    list_editable = ["status"]
     list_per_page = 10
-    list_select_related = ['genre']
     list_filter = [
         "genre",
         RatingFilter,
@@ -170,9 +212,9 @@ class MovieAdmin(admin.ModelAdmin):
         "r_rated",
         "status",
     ]
-    
-    def genre_title(self, movie:models.Movie):
-        return movie.genre.title
+
+    def display_genres(self, obj):
+        return ", ".join([genre.title for genre in obj.genre.all()])
 
 
 @admin.register(models.TVShow)
@@ -187,9 +229,10 @@ class TVShowAdmin(admin.ModelAdmin):
         "season_count",
         "r_rated",
         "status",
-        "genre_title",
+        "display_genres",
     ]
-    list_editable = ['status']
+    list_editable = ["status"]
+    list_per_page = 10
     list_filter = [
         "genre",
         RatingFilter,
@@ -197,9 +240,9 @@ class TVShowAdmin(admin.ModelAdmin):
         "r_rated",
         "status",
     ]
-    
-    def genre_title(self, movie:models.Movie):
-        return movie.genre.title
+
+    def display_genres(self, obj):
+        return ", ".join([genre.title for genre in obj.genre.all()])
 
 
 @admin.register(models.Season)
@@ -211,7 +254,11 @@ class SeasonAdmin(admin.ModelAdmin):
         "rating",
         "release_date",
         "episode_count",
-
+    ]
+    list_select_related = ["tvshow"]
+    list_filter = [
+        RatingFilter,
+        ReleaseDateFilter,
     ]
 
 
@@ -222,7 +269,81 @@ class EpisodeAdmin(admin.ModelAdmin):
     list_display = [
         "title",
         "rating",
-        "episode_number",
         "total_time",
-
+        "episode_number",
     ]
+    list_select_related = ["season"]
+    list_filter = [
+        RatingFilter,
+    ]
+
+
+@admin.register(models.Cast)
+class CastAdmin(admin.ModelAdmin):
+    search_fields = ["first_name", "last_name"]
+    list_display = [
+        "fullname",
+        "age",
+    ]
+    list_per_page = 20
+    list_filter = [
+        RatingFilter,
+        AgeFilter,
+    ]
+
+    def fullname(self, cast: models.Cast):
+        return f"{cast.first_name} {cast.last_name}"
+
+
+@admin.register(models.Role)
+class RoleAdmin(admin.ModelAdmin):
+    autocomplete_fields = ["cast"]
+    search_fields = ["role_name"]
+    list_display = [
+        "role_name",
+        "cast_fullname",
+        "get_related_title",
+    ]
+    list_select_related = ["cast", "content_type"]
+
+    def cast_fullname(self, role: models.Role):
+        return f"{role.cast.first_name} {role.cast.last_name}"
+
+    def get_related_title(self, role: models.Role):
+        if role.content_type.model in ["movie", "tvshow"]:
+            return role.content_type.model_class().objects.get(pk=role.object_id).title
+
+
+@admin.register(models.Reviewer)
+class ReviewerAdmin(admin.ModelAdmin):
+    search_fields = ["user__first_name", "user__last_name"]
+    list_display = [
+        "user_id",
+        "first_name",
+        "last_name",
+        "picture",
+        "average_rating",
+    ]
+    list_per_page = 20
+    list_select_related = ["user"]
+    ordering = ["user__first_name", "user__last_name"]
+
+
+@admin.register(models.Comment)
+class CommentAdmin(admin.ModelAdmin):
+    autocomplete_fields = ["reviewer"]
+    search_fields = ["reviewer__user__first_name", "reviewer__user__last_name", "text"]
+    list_per_page = 10
+    list_display = [
+        "created_at",
+        "reviewer",
+        "get_related_title",
+        "text",
+    ]
+    list_filter = [
+        "created_at",
+    ]
+
+    def get_related_title(self, role: models.Role):
+        if role.content_type.model in ["movie", "tvshow"]:
+            return role.content_type.model_class().objects.get(pk=role.object_id).title
