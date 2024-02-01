@@ -73,8 +73,8 @@ class Season(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0), MaxValueValidator(10)])
     episode_count = models.PositiveIntegerField()
-    picture = models.ImageField(null=True)
-    description = models.TextField(null=True)
+    picture = models.ImageField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     tvshow = models.ForeignKey(TVShow, on_delete=models.CASCADE)
 
     
@@ -85,9 +85,9 @@ class Episode(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0), MaxValueValidator(10)])
     episode_number = models.IntegerField()
-    picture = models.ImageField(null=True)
-    description = models.TextField(null=True)
-    total_time = models.DurationField(null=True)
+    picture = models.ImageField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    total_time = models.DurationField()
     season = models.ForeignKey(Season, on_delete=models.CASCADE)
     
 
@@ -95,7 +95,7 @@ class Cast(models.Model):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     age = models.PositiveIntegerField(null=True)
-    picture = models.ImageField(null=True)
+    picture = models.ImageField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
@@ -114,7 +114,7 @@ class Reviewer(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0), MaxValueValidator(10)])
     user = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
-    picture = models.ImageField(null=True)
+    picture = models.ImageField(null=True, blank=True)
     
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name}'

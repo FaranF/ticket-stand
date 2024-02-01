@@ -212,6 +212,9 @@ class MovieAdmin(admin.ModelAdmin):
         "r_rated",
         "status",
     ]
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("genre")
 
     def display_genres(self, obj):
         return ", ".join([genre.title for genre in obj.genre.all()])
@@ -240,6 +243,9 @@ class TVShowAdmin(admin.ModelAdmin):
         "r_rated",
         "status",
     ]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("genre")
 
     def display_genres(self, obj):
         return ", ".join([genre.title for genre in obj.genre.all()])
@@ -313,7 +319,6 @@ class RoleAdmin(admin.ModelAdmin):
         if role.content_type.model in ["movie", "tvshow"]:
             return role.content_type.model_class().objects.get(pk=role.object_id).title
 
-
 @admin.register(models.Reviewer)
 class ReviewerAdmin(admin.ModelAdmin):
     search_fields = ["user__first_name", "user__last_name"]
@@ -343,7 +348,7 @@ class CommentAdmin(admin.ModelAdmin):
     list_filter = [
         "created_at",
     ]
-
+    
     def get_related_title(self, role: models.Role):
         if role.content_type.model in ["movie", "tvshow"]:
             return role.content_type.model_class().objects.get(pk=role.object_id).title
