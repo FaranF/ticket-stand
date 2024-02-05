@@ -8,6 +8,9 @@ django = "*"
 django-debug-toolbar = "*"
 pillow = "*"
 psycopg2 = "*"
+djangorestframework = "*"
+drf-nested-routers = "*"
+djoser = "*"
 
 [dev-packages]
 model-bakery = "*"

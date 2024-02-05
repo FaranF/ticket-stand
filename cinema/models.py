@@ -57,7 +57,6 @@ class TVShow(models.Model):
         max_digits=4,
         decimal_places=2,
         validators=[MinValueValidator(0), MaxValueValidator(10)])
-    season_count = models.PositiveIntegerField()
     picture = models.ImageField()
     picture_background = models.ImageField()
     description = models.TextField()
@@ -72,10 +71,9 @@ class Season(models.Model):
         max_digits=4,
         decimal_places=2,
         validators=[MinValueValidator(0), MaxValueValidator(10)])
-    episode_count = models.PositiveIntegerField()
     picture = models.ImageField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    tvshow = models.ForeignKey(TVShow, on_delete=models.CASCADE)
+    tvshow = models.ForeignKey(TVShow, on_delete=models.CASCADE, related_name="season_tvshow")
 
     
 class Episode(models.Model):
@@ -88,7 +86,7 @@ class Episode(models.Model):
     picture = models.ImageField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     total_time = models.DurationField()
-    season = models.ForeignKey(Season, on_delete=models.CASCADE)
+    season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="episode_season")
     
 
 class Cast(models.Model):

@@ -243,12 +243,30 @@ class TVShowAdmin(admin.ModelAdmin):
         "r_rated",
         "status",
     ]
+    
+    @admin.display(ordering=["season_count"])
+    def season_count(self, tvshow):
+        url = (
+            reverse("admin:cinema_season_changelist")
+            + "?"
+            + urlencode({"tvshow__id": str(tvshow.id)})
+        )
+        return format_html('<a href="{}">{} Seasons</a>', url, tvshow.season_count)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("genre")
-
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(
+                season_count=Count("season_tvshow"),
+            ).prefetch_related("genre")
+        )
+    
     def display_genres(self, obj):
         return ", ".join([genre.title for genre in obj.genre.all()])
+    
+    def lookup_allowed(self, key):
+        return True
 
 
 @admin.register(models.Season)
@@ -265,7 +283,26 @@ class SeasonAdmin(admin.ModelAdmin):
     list_filter = [
         RatingFilter,
         ReleaseDateFilter,
+        "tvshow",
     ]
+    
+    @admin.display(ordering=["episode_count"])
+    def episode_count(self, season):
+        url = (
+            reverse("admin:cinema_episode_changelist")
+            + "?"
+            + urlencode({"season__id": str(season.id)})
+        )
+        return format_html('<a href="{}">{} Episodes</a>', url, season.episode_count)
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(
+                episode_count=Count("episode_season", distinct=True),
+            )
+        )
 
 
 @admin.register(models.Episode)
@@ -281,6 +318,7 @@ class EpisodeAdmin(admin.ModelAdmin):
     list_select_related = ["season"]
     list_filter = [
         RatingFilter,
+        "season",
     ]
 
 
