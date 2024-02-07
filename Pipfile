@@ -12,6 +12,7 @@ djangorestframework = "*"
 drf-nested-routers = "*"
 djoser = "*"
 django-filter = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 model-bakery = "*"
