@@ -331,7 +331,6 @@ class CastAdmin(admin.ModelAdmin):
     ]
     list_per_page = 20
     list_filter = [
-        RatingFilter,
         AgeFilter,
     ]
 

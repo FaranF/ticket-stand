@@ -1,7 +1,9 @@
-from rest_framework import serializers
-from . import models
-from datetime import date, timedelta
 from django.core.validators import MinValueValidator, MaxValueValidator
+
+from rest_framework import serializers
+
+from datetime import date, timedelta
+from . import models
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -27,6 +29,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "r_rated",
             "status",
             "genres",
+            "description",
         ]
 
     genres = serializers.SerializerMethodField(method_name="genres_titles")
@@ -49,11 +52,13 @@ class TVShowSerializer(serializers.ModelSerializer):
             "season_count",
             "status",
             "genres",
+            "description",
         ]
 
     total_released_time = serializers.SerializerMethodField(method_name="calculate_relased_time")
     genres = serializers.SerializerMethodField(method_name="genres_titles")
     season_count = serializers.IntegerField(validators=[MinValueValidator(1)])
+    # season_count = serializers.IntegerField(method_name="calculate_season_count", validators=[MinValueValidator(1)])
     
     def genres_titles(self, obj):
         return ", ".join([genre.title for genre in obj.genre.all()])
@@ -63,6 +68,10 @@ class TVShowSerializer(serializers.ModelSerializer):
             return obj.finish_date - obj.release_date
         else:
             return date.today() - obj.release_date
+        
+    # def calculate_season_count(self, obj:models.TVShow):
+    #     # return obj.objects.annotate(Count("season_tvshow"))
+    #     return Count("season_tvshow")
 
 class SeasonSerializer(serializers.ModelSerializer):
     class Meta:
@@ -78,6 +87,11 @@ class SeasonSerializer(serializers.ModelSerializer):
             "tvshow",
         ]
     episode_count = serializers.IntegerField(validators=[MinValueValidator(1)])
+    # episode_count = serializers.IntegerField(method_name="calculate_episode_count", validators=[MinValueValidator(1)])
+    
+    # def calculate_episode_count(self, obj:models.Season):
+    #     # return obj.objects.annotate(Count("season_tvshow"))
+    #     return Count("episode_season")
 
 
 class EpisodeSerializer(serializers.ModelSerializer):
@@ -129,6 +143,8 @@ class ReviewerSerializer(serializers.ModelSerializer):
             "user",
             "picture",
         ]
+        
+    user_id = serializers.IntegerField(read_only=True)
         
         
 class CommentSerializer(serializers.ModelSerializer):

@@ -11,6 +11,7 @@ psycopg2 = "*"
 djangorestframework = "*"
 drf-nested-routers = "*"
 djoser = "*"
+django-filter = "*"
 
 [dev-packages]
 model-bakery = "*"
