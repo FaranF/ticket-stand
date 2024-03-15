@@ -6,7 +6,6 @@ from . import views
 router = routers.DefaultRouter()
 router.register("movies", views.MovieViewSet, basename="movies")
 router.register("tvshows", views.TVShowViewSet, basename="tvshows")
-router.register("seasons", views.SeasonViewSet, basename="seasons")
 router.register("casts", views.CastViewSet, basename="casts")
 router.register("reviewers", views.ReviewerViewSet, basename="reviewers")
 
@@ -19,16 +18,14 @@ tvshows_router.register("seasons", views.SeasonViewSet, basename="tvshow-seasons
 tvshows_router.register("roles", views.RoleViewSet, basename="tvshow-roles")
 tvshows_router.register("comments", views.CommentViewSet, basename="tvshow-comments")
 
-seasons_router = routers.NestedDefaultRouter(router, "seasons", lookup="seasons")
+seasons_router = routers.NestedDefaultRouter(tvshows_router, "seasons", lookup="seasons")
 seasons_router.register("episodes", views.EpisodeViewSet, basename="season-episodes")
 
-casts_router = routers.NestedDefaultRouter(router, "casts", lookup="casts")
-casts_router.register("roles", views.RoleViewSet, basename="cast-roles")
+# casts_router = routers.NestedDefaultRouter(router, "casts", lookup="casts")
+# casts_router.register("roles", views.RoleViewSet, basename="cast-roles")
 
-reviewers_router = routers.NestedDefaultRouter(router, "reviewers", lookup="reviewers")
-reviewers_router.register(
-    "comments", views.CommentViewSet, basename="reviewer-comments"
-)
+# reviewers_router = routers.NestedDefaultRouter(router, "reviewers", lookup="reviewers")
+# reviewers_router.register("comments", views.CommentViewSet, basename="reviewer-comments")
 
 # URLConf
 urlpatterns = (
@@ -37,6 +34,6 @@ urlpatterns = (
     + movies_router.urls
     + tvshows_router.urls
     + seasons_router.urls
-    + casts_router.urls
-    + reviewers_router.urls
+    # + casts_router.urls
+    # + reviewers_router.urls
 )

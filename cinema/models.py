@@ -67,6 +67,7 @@ class TVShow(models.Model):
     status = models.CharField(max_length=1, choices=STATUS_CHOICES)
     genre = models.ManyToManyField(Genre, related_name="tvshows_genre")
     
+    
 class Season(models.Model):
     title = models.CharField(max_length=255)
     release_date = models.DateField()
@@ -110,6 +111,7 @@ class Role(models.Model):
 
 
 class Reviewer(models.Model):
+    #TODO: remove average rating
     average_rating = models.DecimalField(
         max_digits=4,
         decimal_places=2,

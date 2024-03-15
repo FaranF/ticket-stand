@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'django_filters',
     'rest_framework',
+    'rest_framework_swagger',
+    'drf_yasg',
     'djoser',
     'core',
     'cinema',

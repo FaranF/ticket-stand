@@ -13,6 +13,8 @@ drf-nested-routers = "*"
 djoser = "*"
 django-filter = "*"
 djangorestframework-simplejwt = "*"
+django-rest-swagger = "*"
+drf-yasg = "*"
 
 [dev-packages]
 model-bakery = "*"
