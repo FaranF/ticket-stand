@@ -20,7 +20,7 @@ class List(models.Model):
     list_type = models.CharField(
         max_length=1, choices=LIST_CHOICES)
     picture = models.ImageField(null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
+    description = models.TextField(blank=True)
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     

@@ -15,7 +15,59 @@ class GenreSerializer(serializers.ModelSerializer):
     tvshows_count = serializers.IntegerField(read_only=True)
 
 
+class CastSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Cast
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "age",
+            "picture",
+        ]
+        
+
+class RoleSerializer(serializers.ModelSerializer):
+    cast = CastSerializer()
+    class Meta:
+        model = models.Role
+        fields = [
+            "id",
+            "role_name",
+            "cast",
+        ]
+        
+        
+class ReviewerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Reviewer
+        fields = [
+            "id",
+            "average_rating",
+            "user",
+            "picture",
+        ]
+        
+    # user_id = serializers.IntegerField(read_only=True)
+        
+        
+class CommentSerializer(serializers.ModelSerializer):
+    reviewer = ReviewerSerializer()
+    class Meta:
+        model = models.Comment
+        fields = [
+            "id",
+            "created_at",
+            "text",
+            "reviewer",
+        ]
+    def create(self, validated_data):
+        object_id = self.context['object_id']
+        return models.Comment.objects.create(object_id=object_id, **validated_data)
+
+
 class MovieSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = models.Movie
         fields = [
@@ -28,15 +80,29 @@ class MovieSerializer(serializers.ModelSerializer):
             "picture_background",
             "r_rated",
             "status",
-            "genres",
+            "genre",
             "description",
+            "roles",
+            "comments"
         ]
+    
+    genre = serializers.PrimaryKeyRelatedField(queryset=models.Genre.objects.all(), many=True)
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['genre'] = [genre.title for genre in instance.genre.all()]
+        return data
+    
+    roles = serializers.SerializerMethodField(method_name="get_roles")
+    def get_roles(self, obj):
+        roles = models.Role.objects.filter(content_type__model='movie', object_id=obj.id)
+        serializer = RoleSerializer(roles, many=True)
+        return serializer.data
 
-    genres = serializers.SerializerMethodField(method_name="genres_titles")
-
-    def genres_titles(self, obj):
-        return ", ".join([genre.title for genre in obj.genre.all()])
-
+    comments = serializers.SerializerMethodField(method_name="get_comments")
+    def get_comments(self, obj):
+        comments = models.Role.objects.filter(content_type__model='movie', object_id=obj.id)
+        serializer = CommentSerializer(comments, many=True)
+        return serializer.data
 
 class TVShowSerializer(serializers.ModelSerializer):
     class Meta:
@@ -51,17 +117,20 @@ class TVShowSerializer(serializers.ModelSerializer):
             "picture_background",
             "season_count",
             "status",
-            "genres",
+            "genre",
             "description",
         ]
 
     total_released_time = serializers.SerializerMethodField(method_name="calculate_relased_time")
-    genres = serializers.SerializerMethodField(method_name="genres_titles")
     season_count = serializers.IntegerField(validators=[MinValueValidator(1)])
     # season_count = serializers.IntegerField(method_name="calculate_season_count", validators=[MinValueValidator(1)])
     
-    def genres_titles(self, obj):
-        return ", ".join([genre.title for genre in obj.genre.all()])
+    genre = serializers.PrimaryKeyRelatedField(queryset=models.Genre.objects.all(), many=True)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['genre'] = [genre.title for genre in instance.genre.all()]
+        return data
     
     def calculate_relased_time(self, obj:models.TVShow):
         if obj.finish_date != None:
@@ -109,53 +178,3 @@ class EpisodeSerializer(serializers.ModelSerializer):
         ]
 
 
-class CastSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Cast
-        fields = [
-            "id",
-            "first_name",
-            "last_name",
-            "age",
-            "picture",
-        ]
-        
-
-class RoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Role
-        fields = [
-            "id",
-            "role_name",
-            "cast",
-            "content_type",
-            "object_id",
-            "content_object",
-        ]
-        
-        
-class ReviewerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Reviewer
-        fields = [
-            "id",
-            "average_rating",
-            "user",
-            "picture",
-        ]
-        
-    user_id = serializers.IntegerField(read_only=True)
-        
-        
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Comment
-        fields = [
-            "id",
-            "created_at",
-            "text",
-            "reviewer",
-            "content_type",
-            "object_id",
-            "content_object",
-        ]

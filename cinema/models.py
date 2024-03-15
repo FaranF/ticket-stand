@@ -16,6 +16,9 @@ class Genre(models.Model):
     
     class Meta:
         ordering = ['title']
+    
+    def __str__(self) -> str:
+        return self.title
 
 class Movie(models.Model):
     STATUS_RELEASED = 'R'
@@ -32,9 +35,9 @@ class Movie(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(10)])
     release_date = models.DateField()
     total_time = models.DurationField()
-    picture = models.ImageField()
-    picture_background = models.ImageField()
-    description = models.TextField()
+    picture = models.ImageField(null=True, blank=True)
+    picture_background = models.ImageField(null=True, blank=True)
+    description = models.TextField(blank=True)
     r_rated = models.BooleanField()
     status = models.CharField(max_length=1, choices=STATUS_CHOICES)
     genre = models.ManyToManyField(Genre, related_name="movies_genre")
@@ -57,9 +60,9 @@ class TVShow(models.Model):
         max_digits=4,
         decimal_places=2,
         validators=[MinValueValidator(0), MaxValueValidator(10)])
-    picture = models.ImageField()
-    picture_background = models.ImageField()
-    description = models.TextField()
+    picture = models.ImageField(null=True, blank=True)
+    picture_background = models.ImageField(null=True, blank=True)
+    description = models.TextField(blank=True)
     r_rated = models.BooleanField()
     status = models.CharField(max_length=1, choices=STATUS_CHOICES)
     genre = models.ManyToManyField(Genre, related_name="tvshows_genre")
@@ -72,7 +75,7 @@ class Season(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0), MaxValueValidator(10)])
     picture = models.ImageField(null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
+    description = models.TextField(blank=True)
     tvshow = models.ForeignKey(TVShow, on_delete=models.CASCADE, related_name="season_tvshow")
 
     
@@ -84,7 +87,7 @@ class Episode(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(10)])
     episode_number = models.IntegerField()
     picture = models.ImageField(null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
+    description = models.TextField(blank=True)
     total_time = models.DurationField()
     season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="episode_season")
     
@@ -132,6 +135,7 @@ class Comment(models.Model):
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     reviewer = models.ForeignKey(Reviewer, on_delete=models.PROTECT)
+    #TODO: add rating too
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey()

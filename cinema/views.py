@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.db.models.aggregates import Count
+from django.contrib.contenttypes.models import ContentType
 
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -23,7 +24,7 @@ class GenreViewSet(ModelViewSet):
     
 
 class MovieViewSet(ModelViewSet):
-    queryset = models.Movie.objects.all()
+    queryset = models.Movie.objects.prefetch_related('genre')
     serializer_class = serializers.MovieSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = filters.MovieFilter
@@ -31,11 +32,11 @@ class MovieViewSet(ModelViewSet):
     # permission_classes = 
     search_fields = ['title', 'description']
     ordering_fields = ['rating', 'release_date', 'total_time', 'status']
-    
+     
 
 class TVShowViewSet(ModelViewSet):
     queryset = models.TVShow.objects.annotate(
-        season_count=Count('season_tvshow')).all()
+        season_count=Count('season_tvshow')).prefetch_related('genre')
     serializer_class = serializers.TVShowSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = filters.TVShowFilter
@@ -80,7 +81,10 @@ class CastViewSet(ModelViewSet):
     
     
 class RoleViewSet(ModelViewSet):
-    queryset = models.Role.objects.all()
+    content_types = {
+            "movie":"movies_pk",
+            "tvshow":"tvshows_pk",
+            }
     serializer_class = serializers.RoleSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = filters.RoleFilter
@@ -88,6 +92,18 @@ class RoleViewSet(ModelViewSet):
     # permission_classes = 
     search_fields = ['role_name', 'cast__first_name', 'cast__last_name']
     ordering_fields = ['cast__age']
+    
+    def get_queryset(self):
+        if 'movies_pk' in self.kwargs:
+            return models.Role.objects.filter(object_id=self.kwargs[self.content_types["movie"]])
+        elif 'tvshows_pk' in self.kwargs:
+            return models.Role.objects.filter(object_id=self.kwargs[self.content_types["tvshow"]])
+
+    def get_serializer_context(self):
+        if 'movies_pk' in self.kwargs:
+            return {'object_id': self.kwargs[self.content_types["movie"]]}
+        elif 'tvshows_pk' in self.kwargs:
+            return {'object_id': self.kwargs[self.content_types["tvshow"]]}
     
     
 class ReviewerViewSet(ModelViewSet):
@@ -110,10 +126,20 @@ class ReviewerViewSet(ModelViewSet):
         
 class CommentViewSet(ModelViewSet):
     serializer_class = serializers.CommentSerializer
+    content_types = {
+            "movie":"movies_pk",
+            "tvshow":"tvshows_pk",
+            }
 
     def get_queryset(self):
-        return models.Comment.objects.filter(object_id=self.kwargs['object_id'])
+        if 'movies_pk' in self.kwargs:
+            return models.Comment.objects.filter(object_id=self.kwargs[self.content_types["movie"]])
+        elif 'tvshows_pk' in self.kwargs:
+            return models.Comment.objects.filter(object_id=self.kwargs[self.content_types["tvshow"]])
 
-    # def get_serializer_context(self):
-    #     return {'object_id': self.kwargs['object_id']}
-
+    def get_serializer_context(self):
+        if 'movies_pk' in self.kwargs:
+            return {'object_id': self.kwargs[self.content_types["movie"]]}
+        elif 'tvshows_pk' in self.kwargs:
+            return {'object_id': self.kwargs[self.content_types["tvshow"]]}
+        

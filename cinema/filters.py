@@ -5,7 +5,7 @@ class MovieFilter(FilterSet):
   class Meta:
     model = models.Movie
     fields = {
-      'genre_id': ['exact'],
+      'genre__id': ['exact'],
       'rating': ['gt', 'lt'],
       'total_time': ['gt', 'lt'],
       'status': ['exact'],
@@ -16,7 +16,7 @@ class TVShowFilter(FilterSet):
   class Meta:
     model = models.TVShow
     fields = {
-      'genre_id': ['exact'],
+      'genre__id': ['exact'],
       'rating': ['gt', 'lt'],
       'status': ['exact'],
       'release_date': ['gt', 'lt'],

@@ -23,14 +23,13 @@ import debug_toolbar
 admin.site.site_header = 'Ticket Stand Admin'
 admin.site.index_title = 'Admin'
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('__debug__/', include(debug_toolbar.urls)),
-]
+# urlpatterns = [
+#     path('admin/', admin.site.urls),
+#     path('__debug__/', include(debug_toolbar.urls)),
+# ]
 
-
 urlpatterns = [
-    path('', include('core.urls')),
+    # path('', include('core.urls')),
     path('admin/', admin.site.urls),
     path('cinema/', include('cinema.urls')),
     path('list/', include('list.urls')),
